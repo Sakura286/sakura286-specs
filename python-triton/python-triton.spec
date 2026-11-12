@@ -74,7 +74,6 @@ BuildRequires:  python3dist(build)
 BuildRequires:  python3dist(installer)
 BuildRequires:  python3dist(nanobind) >= 2.10.2
 BuildRequires:  python3dist(numpy)
-BuildRequires:  python3dist(lit)
 BuildRequires:  python3dist(setuptools)
 BuildRequires:  python3dist(wheel)
 
@@ -169,9 +168,16 @@ export TRITON_PLUGIN_DIRS="$PWD/%{shared_src}"
 export TRITON_BUILD_NVIDIA_GSAN_RUNTIME=OFF
 export TRITON_HOME="$PWD/.build-cache"
 export TRITON_OFFLINE_BUILD=1
-export TRITON_APPEND_CMAKE_ARGS="-DTRITON_BUILD_TOOLS=OFF -DTRITON_SHARED_BUILD_TRITON_SAN=OFF"
+export TRITON_APPEND_CMAKE_ARGS="-DTRITON_BUILD_TOOLS=OFF -DTRITON_SHARED_BUILD_TRITON_SAN=OFF -DLLVM_EXTERNAL_LIT=$llvm_src/llvm/utils/lit/lit.py"
 
 %check -a
+# Use lit from the pinned LLVM source; openRuyi has no standalone lit RPM.
+triton_cmake_dir=$(%{python3} -c 'from python.build_helpers import get_cmake_dir; print(get_cmake_dir())')
+PATH="$PWD/llvm-install/bin:$PATH" %{python3} \
+    llvm-project-%{llvm_commit}/llvm/utils/lit/lit.py -sv \
+    --filter='Conversion/TritonToLinalg/' \
+    "$triton_cmake_dir/third_party/triton_shared/test"
+
 # Use installed files and normal RPM tool lookup; do not mask path problems
 # with the build-time LLVM_SYSPATH or backend/tool environment overrides.
 export TRITON_CACHE_DIR="$PWD/.check-cache"
