@@ -8,7 +8,7 @@
 %global srcname triton
 # The triton-riscv compatibility baseline is a post-3.9.0 upstream snapshot.
 %global commit bbe38e5742621fa0e46435133f79a6aff2ffaf7d
-%global snapshot_suffix +git20261102.bbe38e5
+%global snapshot_suffix +git20261112.bbe38e5
 
 # Match the LLVM gitlink of the Buddy snapshot, including the RuyiAI fork.
 %global llvm_commit f346011a7ac59144fe085e0bc029cb24835f7a69
