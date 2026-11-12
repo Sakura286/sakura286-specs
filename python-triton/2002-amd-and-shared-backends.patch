@@ -2,6 +2,8 @@ From: CHEN Xuan <chenxuan@iscas.ac.cn>
 Subject: [PATCH] Build AMD and external backends without the NVIDIA plugin
 
 Downstream openRuyi packaging adaptation for Triton 3.9.0.
+Keep NVIDIA Python layout/descriptor modules: common native Gluon code
+imports them even when the NVIDIA runtime backend is disabled.
 
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
@@ -21,13 +23,13 @@ Downstream openRuyi packaging adaptation for Triton 3.9.0.
 +if("nvidia" IN_LIST TRITON_CODEGEN_BACKENDS)
 +  set(TRITON_BUILD_NVIDIA_BACKEND_PLUGIN ON)
 +endif()
- 
+
  set(TRITON_CACHE_PATH "" CACHE PATH "Path to triton cache")
  set(TRITON_LLVM_SYSTEM_SUFFIX "" CACHE STRING "Path to LLVM system suffix")
 @@ -355,11 +361,15 @@
      add_subdirectory(third_party/${CODEGEN_BACKEND})
    endforeach()
- 
+
 +  # Common Gluon and AMD lowering still depend on NVIDIA dialect definitions.
 +  if(NOT TRITON_BUILD_NVIDIA_BACKEND_PLUGIN)
 +    add_subdirectory(third_party/nvidia)
@@ -39,11 +41,11 @@ Downstream openRuyi packaging adaptation for Triton 3.9.0.
    # We always build proton dialect
 -  list(APPEND TRITON_PLUGIN_NAMES "proton")
    add_subdirectory(third_party/proton/Dialect)
- 
+
    if (DEFINED TRITON_PLUGIN_DIRS)
 @@ -536,8 +546,10 @@
  find_package(Threads REQUIRED)
- 
+
  add_subdirectory(third_party/f2reduce)
 -add_subdirectory(bin)
 -add_subdirectory(test)
@@ -51,36 +53,34 @@ Downstream openRuyi packaging adaptation for Triton 3.9.0.
 +  add_subdirectory(bin)
 +  add_subdirectory(test)
 +endif()
- 
+
  if(TRITON_BUILD_UT)
    add_subdirectory(unittest)
 --- a/setup.py
 +++ b/setup.py
 @@ -398,7 +398,7 @@
                                    cwd=cmake_dir)
- 
+
  
 -backends = [*BackendInstaller.copy(["nvidia", "amd"]), *BackendInstaller.copy_externals()]
 +backends = [*BackendInstaller.copy(os.getenv("TRITON_CODEGEN_BACKENDS", "nvidia;amd").split(";")), *BackendInstaller.copy_externals()]
- 
+
  
  def get_package_dirs():
-@@ -429,7 +429,13 @@
- 
+@@ -429,7 +429,11 @@
+
  
  def get_packages():
 -    yield from find_packages(where="python")
 +    excludes = []
 +    if not any(b.name == "nvidia" for b in backends):
-+        excludes = ["triton.experimental.gluon.language.nvidia",
-+                    "triton.experimental.gluon.language.nvidia.*",
-+                    "triton.tools.triton_to_gluon_translater",
++        excludes = ["triton.tools.triton_to_gluon_translater",
 +                    "triton.tools.triton_to_gluon_translater.*"]
 +    yield from find_packages(where="python", exclude=excludes)
- 
+
      for backend in backends:
          yield f"triton.backends.{backend.name}"
-@@ -545,6 +551,9 @@
+@@ -545,6 +549,9 @@
              "proton-viewer = triton.profiler.viewer:main",
              "proton = triton.profiler.proton:main",
          ]
@@ -89,7 +89,7 @@ Downstream openRuyi packaging adaptation for Triton 3.9.0.
 +            "triton-shared-opt = triton.backends.triton_shared.cli:main")
      entry_points["triton.backends"] = [f"{b.name} = triton.backends.{b.name}" for b in backends]
      return entry_points
- 
+
 --- a/lib/Conversion/CMakeLists.txt
 +++ b/lib/Conversion/CMakeLists.txt
 @@ -1,3 +1,5 @@
@@ -138,25 +138,6 @@ Downstream openRuyi packaging adaptation for Triton 3.9.0.
    add_triton_plugin(TritonProton ${CMAKE_CURRENT_SOURCE_DIR}/triton_proton.cc LINK_LIBS ProtonToProtonGPU ProtonGPUToLLVM ProtonAMDGPUToLLVM ProtonNVIDIAGPUToLLVM ProtonAnalysis)
    target_link_libraries(TritonProton PRIVATE Python3::Module nanobind-static)
  endif()
---- a/python/triton/experimental/gluon/__init__.py
-+++ b/python/triton/experimental/gluon/__init__.py
-@@ -1,6 +1,5 @@
- from ._runtime import GluonASTSource, GluonJITFunction, constexpr_function, jit
- from triton import must_use_result, aggregate
--from . import nvidia
- from . import amd
- 
- __all__ = [
---- a/python/triton/experimental/gluon/language/__init__.py
-+++ b/python/triton/experimental/gluon/language/__init__.py
-@@ -142,7 +142,6 @@
-     zeros_like,
- )
- 
--from . import nvidia
- from . import amd
- from . import extra
- from . import fpsan
 --- a/third_party/nvidia/include/CMakeLists.txt
 +++ b/third_party/nvidia/include/CMakeLists.txt
 @@ -1,3 +1,5 @@
@@ -182,7 +163,7 @@ Downstream openRuyi packaging adaptation for Triton 3.9.0.
 @@ -2,5 +2,7 @@
  mlir_tablegen(Passes.h.inc -gen-pass-decls --name ProtonGPUToLLVM)
  add_public_tablegen_target(ProtonGPUConversionPassIncGen)
- 
+
 -add_subdirectory(ProtonNvidiaGPUToLLVM)
 +if(TRITON_BUILD_NVIDIA_BACKEND_PLUGIN)
 +  add_subdirectory(ProtonNvidiaGPUToLLVM)
@@ -193,7 +174,7 @@ Downstream openRuyi packaging adaptation for Triton 3.9.0.
 @@ -12,5 +12,7 @@
      ProtonAnalysis
  )
- 
+
 -add_subdirectory(ProtonNvidiaGPUToLLVM)
 +if(TRITON_BUILD_NVIDIA_BACKEND_PLUGIN)
 +  add_subdirectory(ProtonNvidiaGPUToLLVM)

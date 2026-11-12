@@ -8,7 +8,7 @@ Downstream openRuyi packaging adaptation for Triton 3.9.0.
 @@ -61,6 +61,12 @@
      if bundled := _bundled_bin_path(bin_name):
          return bundled
- 
+
 +    # The RPM dependency supplies the exact LLVM revision used by Buddy.
 +    # Prefer it to unrelated versions of LLVM installed on the system PATH.
 +    private_tool = Path("@BUDDY_LLVM_BINDIR@") / bin_name
