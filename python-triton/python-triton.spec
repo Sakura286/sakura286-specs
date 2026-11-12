@@ -6,6 +6,9 @@
 # SPDX-License-Identifier: MulanPSL-2.0
 
 %global srcname triton
+# The triton-riscv compatibility baseline is a post-3.9.0 upstream snapshot.
+%global commit bbe38e5742621fa0e46435133f79a6aff2ffaf7d
+%global snapshot_suffix +git20261102.bbe38e5
 
 # Match the LLVM gitlink of the Buddy snapshot, including the RuyiAI fork.
 %global llvm_commit f346011a7ac59144fe085e0bc029cb24835f7a69
@@ -22,7 +25,7 @@
 %define _find_debuginfo_dwz_opts %{nil}
 
 Name:           python-%{srcname}
-Version:        3.9.0
+Version:        3.9.0%{snapshot_suffix}
 Release:        %autorelease
 Summary:        Language and compiler for custom deep-learning primitives
 # Triton itself is MIT.  The statically bundled LLVM/MLIR/LLD is
@@ -30,8 +33,8 @@ Summary:        Language and compiler for custom deep-learning primitives
 License:        MIT AND (Apache-2.0 WITH LLVM-exception OR NCSA) AND BSD-3-Clause
 URL:            https://triton-lang.org/main/index.html
 VCS:            git:https://github.com/triton-lang/triton.git
-#!RemoteAsset:  sha256:78fc9ff4403a856dce609c8529b6f341a7aaf331c2582ed7167949b40f864cd5
-Source0:        https://codeload.github.com/triton-lang/triton/tar.gz/refs/tags/v%{version}#/%{srcname}-%{version}.tar.gz
+#!RemoteAsset:  sha256:b42983a22beaf0043ec01e0d38529193d6653cc3147ea9dac2c729ee98a0129e
+Source0:        https://codeload.github.com/triton-lang/triton/tar.gz/%{commit}#/%{srcname}-%{commit}.tar.gz
 #!RemoteAsset:  sha256:d5e5a0b206ac7ff12b0deef16b5b3d289d9b6d151a8c4f2f35fc97588d149118
 Source1:        https://codeload.github.com/RuyiAI-Stack/llvm-project/tar.gz/%{llvm_commit}#/llvm-project-%{llvm_commit}.tar.gz
 #!RemoteAsset:  sha256:b59c65078650e0cac853b5df9a5a8756f701659660ebda215a6bdede79911317
@@ -46,7 +49,7 @@ Patch2:         2003-shared-backend-rpm-paths.patch
 BuildSystem:    pyproject
 
 # Unpack the external backend before applying patches to both source trees.
-BuildOption(prep):  -n %{srcname}-%{version} -a 2
+BuildOption(prep):  -n %{srcname}-%{commit} -a 2
 
 BuildOption(install):  -l %{srcname}
 BuildOption(check):  -e 'triton.instrumentation.*'
@@ -96,10 +99,12 @@ a separate private LLVM from the same source revision.
 
 %prep -a
 tar -xf %{SOURCE1}
+cp %{shared_src}/LICENSE LICENSE.triton-shared
 sed -i 's|@BUDDY_LLVM_BINDIR@|%{_libdir}/buddy-mlir/llvm/bin|' \
     %{shared_src}/backend/paths.py
 
 %generate_buildrequires
+export TRITON_WHEEL_VERSION_SUFFIX="%{snapshot_suffix}"
 export TRITON_CODEGEN_BACKENDS=amd
 export TRITON_PLUGIN_DIRS="$PWD/%{shared_src}"
 export TRITON_BUILD_PROTON=OFF
@@ -163,6 +168,7 @@ export MAX_JOBS=$compile_jobs
 export TRITON_PARALLEL_LINK_JOBS=$link_jobs
 export TRITON_BUILD_WITH_CLANG_LLD=ON
 export TRITON_BUILD_PROTON=OFF
+export TRITON_WHEEL_VERSION_SUFFIX="%{snapshot_suffix}"
 export TRITON_CODEGEN_BACKENDS=amd
 export TRITON_PLUGIN_DIRS="$PWD/%{shared_src}"
 export TRITON_BUILD_NVIDIA_GSAN_RUNTIME=OFF
@@ -191,7 +197,7 @@ PYTHONPATH=%{buildroot}%{python3_sitearch} %{buildroot}%{_bindir}/triton-shared-
 %doc README.md
 %license LICENSE
 %license llvm-project-%{llvm_commit}/llvm/LICENSE.TXT
-%license %{shared_src}/LICENSE
+%license LICENSE.triton-shared
 
 %changelog
 %autochangelog

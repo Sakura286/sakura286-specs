@@ -25,7 +25,7 @@ Downstream openRuyi packaging adaptation for Triton 3.9.0.
              "-DPython3_EXECUTABLE:FILEPATH=" + sys.executable,
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -294,7 +294,7 @@
+@@ -290,7 +290,7 @@
      # crash a Triton not compiled with visibility due to missing symbols.
      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DTRITON_EXT_ENABLED=1")
    endif()

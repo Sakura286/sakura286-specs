@@ -1,7 +1,7 @@
 From: CHEN Xuan <chenxuan@iscas.ac.cn>
 Subject: [PATCH] Build AMD and external backends without the NVIDIA plugin
 
-Downstream openRuyi packaging adaptation for Triton 3.9.0.
+Downstream openRuyi adaptation for the triton-riscv 3.9.0 snapshot baseline.
 Keep NVIDIA Python layout/descriptor modules: common native Gluon code
 imports them even when the NVIDIA runtime backend is disabled.
 
@@ -26,7 +26,7 @@ imports them even when the NVIDIA runtime backend is disabled.
 
  set(TRITON_CACHE_PATH "" CACHE PATH "Path to triton cache")
  set(TRITON_LLVM_SYSTEM_SUFFIX "" CACHE STRING "Path to LLVM system suffix")
-@@ -355,11 +361,15 @@
+@@ -351,11 +357,15 @@
      add_subdirectory(third_party/${CODEGEN_BACKEND})
    endforeach()
 
@@ -43,7 +43,7 @@ imports them even when the NVIDIA runtime backend is disabled.
    add_subdirectory(third_party/proton/Dialect)
 
    if (DEFINED TRITON_PLUGIN_DIRS)
-@@ -536,8 +546,10 @@
+@@ -533,8 +543,10 @@
  find_package(Threads REQUIRED)
 
  add_subdirectory(third_party/f2reduce)
@@ -58,7 +58,7 @@ imports them even when the NVIDIA runtime backend is disabled.
    add_subdirectory(unittest)
 --- a/setup.py
 +++ b/setup.py
-@@ -398,7 +398,7 @@
+@@ -397,7 +397,7 @@
                                    cwd=cmake_dir)
 
  
@@ -67,7 +67,7 @@ imports them even when the NVIDIA runtime backend is disabled.
 
  
  def get_package_dirs():
-@@ -429,7 +429,11 @@
+@@ -428,7 +428,11 @@
 
  
  def get_packages():
@@ -80,7 +80,7 @@ imports them even when the NVIDIA runtime backend is disabled.
 
      for backend in backends:
          yield f"triton.backends.{backend.name}"
-@@ -545,6 +549,9 @@
+@@ -544,6 +548,9 @@
              "proton-viewer = triton.profiler.viewer:main",
              "proton = triton.profiler.proton:main",
          ]
@@ -108,9 +108,9 @@ imports them even when the NVIDIA runtime backend is disabled.
 -if(TRITON_BUILD_PYTHON_MODULE)
 +if(TRITON_BUILD_PYTHON_MODULE AND TRITON_BUILD_NVIDIA_BACKEND_PLUGIN)
    if(TRITON_BUILD_NVIDIA_GSAN_RUNTIME)
-     set(GSAN_RUNTIME_SRC "${triton_SOURCE_DIR}/python/triton/experimental/gsan/src/GSanLibrary.cu")
+     set(GSAN_RUNTIME_DIR "${triton_SOURCE_DIR}/python/triton/experimental/gsan/src")
      set(GSAN_RUNTIME_HDRS
-@@ -55,7 +55,7 @@
+@@ -61,7 +61,7 @@
      add_dependencies(TritonNVIDIA TritonNVIDIAGSanRuntime)
    endif()
  endif()

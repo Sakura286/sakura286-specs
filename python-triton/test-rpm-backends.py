@@ -45,6 +45,7 @@ def matmul(A, B, C, BLOCK: tl.constexpr):
 
 
 assert triton.__version__ == "3.9.0", triton.__version__
+assert distribution("triton").version == "3.9.0+git20261102.bbe38e5"
 assert set(backends) == {"amd", "triton_shared"}, backends
 entries = {e.name for e in distribution("triton").entry_points
            if e.group == "triton.backends"}
