@@ -1,11 +1,12 @@
 # SPDX-FileCopyrightText: (C) 2026 Institute of Software, Chinese Academy of Sciences (ISCAS)
 # SPDX-FileCopyrightText: (C) 2026 openRuyi Project Contributors
 # SPDX-FileContributor: Yifan Xu <xuyifan@iscas.ac.cn>
+# SPDX-FileContributor: CHEN Xuan <chenxuan@iscas.ac.cn>
 #
 # SPDX-License-Identifier: MulanPSL-2.0
 
-%global commit 60f354a7b659a1ce36fdf9ba7bd97fdbf6bb0e5f
-%global llvm_commit 3845a20590afedfbece4d000f97a6cfbbea3bf43
+%global commit 72dcb5dae02510539e71e2d6941e4a60133bc2dc
+%global llvm_commit f346011a7ac59144fe085e0bc029cb24835f7a69
 
 %global bootstrap_llvm_maj_ver 22
 %global bootstrap_llvm_bindir %{_libdir}/llvm%{bootstrap_llvm_maj_ver}/bin
@@ -20,24 +21,26 @@
 %define _find_debuginfo_dwz_opts %{nil}
 
 Name:           buddy-mlir
-Version:        0.1.2
+Version:        0.1.4~git20261112.72dcb5d
 Release:        %autorelease
 Summary:        MLIR-based compiler framework with RISC-V vector lowering passes
 License:        Apache-2.0 AND (Apache-2.0 WITH LLVM-exception OR NCSA)
 URL:            https://github.com/buddy-compiler/buddy-mlir
 VCS:            git:https://github.com/buddy-compiler/buddy-mlir.git
-#!RemoteAsset:  sha256:0f0a65448a9db1dc53f0719d2a1ef42b669bed3a077228ee9efee81c794e4ffe
-Source0:        %{url}/archive/%{commit}/%{name}-%{commit}.tar.gz
-#!RemoteAsset:  sha256:2bdef4109d89d1306cf432bd02d9a1add1ee1e898aea151bfa7d5dd5b40be5d9
-Source1:        https://github.com/RuyiAI-Stack/llvm-project/archive/%{llvm_commit}/llvm-project-%{llvm_commit}.tar.gz
+#!RemoteAsset:  sha256:626614fd6ad2f2abca81b894226d4ff36bded6645dd7627f461ba17e4ac4caa9
+Source0:        https://codeload.github.com/buddy-compiler/buddy-mlir/tar.gz/%{commit}#/%{name}-%{commit}.tar.gz
+#!RemoteAsset:  sha256:d5e5a0b206ac7ff12b0deef16b5b3d289d9b6d151a8c4f2f35fc97588d149118
+Source1:        https://codeload.github.com/RuyiAI-Stack/llvm-project/tar.gz/%{llvm_commit}#/llvm-project-%{llvm_commit}.tar.gz
 BuildSystem:    cmake
+
+BuildOption(prep):  -n %{name}-%{commit}
 
 BuildOption(conf):  -G Ninja
 BuildOption(conf):  -DBUDDY_ENABLE_TESTS=OFF
 BuildOption(conf):  -DBUDDY_MLIR_ENABLE_PYTHON_PACKAGES=OFF
 BuildOption(conf):  -DBUDDY_MLIR_ENABLE_RISCV_GNU_TOOLCHAIN=OFF
 BuildOption(conf):  -DBUDDY_DOWNLOAD_CLI11=OFF
-BuildOption(conf):  -DBUDDY_PACKAGE_VERSION=%{version}
+BuildOption(conf):  -DBUDDY_PACKAGE_VERSION=0.1.4
 BuildOption(conf):  -DBUILD_SHARED_LIBS=OFF
 BuildOption(conf):  -DLLVM_DIR=%{llvm_build}/lib/cmake/llvm
 BuildOption(conf):  -DMLIR_DIR=%{llvm_build}/lib/cmake/mlir
@@ -87,7 +90,8 @@ License:        Apache-2.0 WITH LLVM-exception
 
 %description    llvm
 The pinned LLVM/MLIR build (RuyiAI's llvm-project fork, branch riscv) that
-buddy-mlir and the Triton-RISCV stack compile and link against. It is
+buddy-mlir compiles and links against. Triton builds its own toolchain from
+the same source revision with additional GPU targets. This instance is
 installed under %{llvm_prefix} and is deliberately not the distribution LLVM:
 the MLIR version has to match buddy-mlir exactly, and the fork carries the
 RISC-V backend work the lowering emits code for. It is built statically, so the
@@ -110,9 +114,8 @@ License:        Apache-2.0 WITH LLVM-exception
 Requires:       %{name}-llvm%{?_isa} = %{version}-%{release}
 
 %description    llvm-static
-The static LLVM/MLIR libraries of the pinned toolchain; they are what the
-Triton-RISCV stack links against when it builds its tools from the
-%{name}-llvm-devel configuration.
+The static LLVM/MLIR libraries for consumers of the
+%{name}-llvm-devel configuration. Triton builds its own LLVM instance.
 
 %prep -a
 tar -xf %{SOURCE1}
@@ -201,8 +204,7 @@ printf 'module {}\n' | %{buildroot}%{_bindir}/buddy-opt > /dev/null
 %{buildroot}%{_bindir}/buddy-translate --help > /dev/null
 %{buildroot}%{_bindir}/buddy-llc --version > /dev/null
 
-# The pinned LLVM must be able to emit RVV code for both the JIT and the AOT
-# paths of the Triton-RISCV backend.
+# Check basic RISC-V target availability; this is not an RVV execution test.
 %{buildroot}%{llvm_prefix}/bin/llc --version | grep -q riscv64
 cat > rvv-smoke.ll <<'EOF'
 define void @smoke() {
