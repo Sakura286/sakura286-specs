@@ -93,6 +93,8 @@ Provides:       python3-%{srcname}%{?_isa} = %{version}-%{release}
 2003-shared-backend-rpm-paths.patch
 # Adapt both loop annotation builders to the fixed Buddy LLVM API.
 2004-buddy-llvm-loop-annotations.patch
+# Update AMD relaxed loads and ROCDL target selection for the same LLVM.
+2005-buddy-llvm-amd-lowering.patch
 
 %description
 Triton is a language and compiler for writing highly efficient custom
