@@ -1,0 +1,97 @@
+From: CHEN Xuan <chenxuan@iscas.ac.cn>
+Subject: [PATCH] Keep shared AMD instrumentation without NVIDIA codegen
+
+AMD lowering uses the common instrumentation and floating-point sanitizer
+patterns. Build them without the NVIDIA-only GSan source and guard the
+CUDA/PTX branches, retaining the existing AMD atomic and lane predicates.
+NVIDIA dialect definitions remain available for shared IR types.
+
+--- a/lib/Conversion/TritonInstrumentToLLVM/CMakeLists.txt
++++ b/lib/Conversion/TritonInstrumentToLLVM/CMakeLists.txt
+@@ -1,7 +1,10 @@
++set(instrument_sources InstrumentationToLLVM.cpp FpSanToLLVM.cpp)
++if(TRITON_BUILD_NVIDIA_BACKEND_PLUGIN)
++  list(APPEND instrument_sources GSanToLLVM.cpp)
++endif()
++
+ add_triton_library(TritonInstrumentToLLVM
+-    InstrumentationToLLVM.cpp
+-    FpSanToLLVM.cpp
+-    GSanToLLVM.cpp
++    ${instrument_sources}
+
+     LINK_LIBS PUBLIC
+     MLIRIR
+@@ -12,3 +15,8 @@
+     TritonNvidiaGPUIR
+     NVGPUIR
+ )
++
++if(TRITON_BUILD_NVIDIA_BACKEND_PLUGIN)
++  target_compile_definitions(TritonInstrumentToLLVM PRIVATE
++    TRITON_ENABLE_NVIDIA_INSTRUMENTATION)
++endif()
+--- a/lib/Conversion/TritonInstrumentToLLVM/InstrumentationToLLVM.cpp
++++ b/lib/Conversion/TritonInstrumentToLLVM/InstrumentationToLLVM.cpp
+@@ -2,8 +2,10 @@
+ #include "mlir/Dialect/LLVMIR/LLVMDialect.h"
+ #include "mlir/IR/ImplicitLocOpBuilder.h"
+ #include "third_party/nvidia/include/Dialect/NVGPU/IR/Dialect.h"
++#ifdef TRITON_ENABLE_NVIDIA_INSTRUMENTATION
+ #include "third_party/nvidia/include/TritonNVIDIAGPUToLLVM/PTXAsmFormat.h"
+ #include "third_party/nvidia/lib/TritonNVIDIAGPUToLLVM/Utility.h"
++#endif
+ #include "triton/Conversion/TritonGPUToLLVM/PatternTritonGPUOpToLLVM.h"
+ #include "triton/Conversion/TritonGPUToLLVM/TargetInfoBase.h"
+ #include "triton/Conversion/TritonGPUToLLVM/Utility.h"
+@@ -142,8 +144,13 @@
+
+ Value createLockOwnerPredicate(const TargetInfoBase &targetInfo, OpBuilder &b,
+                                Location loc) {
+-  if (targetInfo.isCuda())
++  if (targetInfo.isCuda()) {
++#ifdef TRITON_ENABLE_NVIDIA_INSTRUMENTATION
+     return mlir::LLVM::NVIDIA::createElectPredicateWarp0(loc, b);
++#else
++    llvm_unreachable("NVIDIA instrumentation is disabled");
++#endif
++  }
+   TritonLLVMOpBuilder tb(loc, b);
+   auto [laneId, warpId] = getLaneAndWarpId(b, loc);
+   Value lane0 = tb.icmp_eq(laneId, tb.i32_val(0));
+@@ -190,6 +197,7 @@
+         arith::ConstantOp::create(b, loc, i32, b.getIntegerAttr(i32, 1));
+
+     if (targetInfo.isCuda()) {
++#ifdef TRITON_ENABLE_NVIDIA_INSTRUMENTATION
+       // Inline PTX CAS: old = atom.global.acquire.gpu.cas.b32 [lock], 0, 1
+       // Use converted lock pointer from adaptor for addressing
+       PTXBuilder ptx;
+@@ -205,6 +213,9 @@
+       Value cond =
+           arith::CmpIOp::create(b, loc, arith::CmpIPredicate::ne, old, zero);
+       LLVM::CondBrOp::create(b, loc, cond, whileBlock, endBlock);
++#else
++      llvm_unreachable("NVIDIA instrumentation is disabled");
++#endif
+     } else {
+       Value oldVal = LLVM::AtomicRMWOp::create(
+           b, loc, LLVM::AtomicBinOp::xchg, adaptor.getLock(), one,
+@@ -259,6 +270,7 @@
+
+     Value elect = createLockOwnerPredicate(targetInfo, b, loc);
+     if (targetInfo.isCuda()) {
++#ifdef TRITON_ENABLE_NVIDIA_INSTRUMENTATION
+       PTXBuilder ptx;
+       auto *dstOpr = ptx.newOperand("=r", /*init=*/true);
+       auto *ptrOpr = ptx.newAddrOperand(adaptor.getLock(), "l");
+@@ -267,6 +279,9 @@
+       atom.global().o("release").o("gpu").o("exch").o("b32");
+       atom(dstOpr, ptrOpr, valOpr).predicate(elect);
+       ptx.launch(b, loc, i32);
++#else
++      llvm_unreachable("NVIDIA instrumentation is disabled");
++#endif
+     } else {
+       auto [prevBlock, ifBlock, thenBlock] = createIfBlock(b, loc, elect);
+       b.setInsertionPointToStart(ifBlock);

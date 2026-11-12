@@ -12,6 +12,7 @@ from triton.backends.compiler import GPUTarget
 from triton.backends.triton_shared.driver import CPUDriver
 from triton.backends.triton_shared.paths import _get_llvm_bin_path
 from triton.compiler import ASTSource
+from triton._C.libtriton import amd, ir, passes
 
 
 class Tensor:
@@ -77,3 +78,30 @@ source = ASTSource(vector_add,
 kernel = triton.compile(source, target=GPUTarget("hip", "gfx90a", 64))
 assert kernel.asm["hsaco"], "AMD compilation produced no code object"
 print("AMD gfx90a offline compilation: passed (GPU execution not tested)", flush=True)
+
+# Exercise the shared instrumentation retained in an AMD-only native build.
+# Based on upstream test/Conversion/amd/tritongpu_to_llvm_cdna5.mlir.
+lock_source = Path("amd-lock-release-check.mlir")
+lock_source.write_text("""
+module attributes {"ttg.num-ctas" = 1 : i32, "ttg.num-warps" = 4 : i32,
+                   "ttg.threads-per-warp" = 32 : i32} {
+  tt.func private @experimental_lock_release(%lock: !tt.ptr<i32>, %pred: i1) {
+    tti.experimental_lock_release %lock, %pred : !tt.ptr<i32>
+    tt.return
+  }
+}
+""")
+ctx = ir.context()
+ir.load_dialects(ctx)
+amd.load_dialects(ctx)
+lock_module = ir.parse_mlir_module(str(lock_source), ctx)
+pm = ir.pass_manager(ctx)
+passes.ttgpuir.add_allocate_shared_memory(pm)
+amd.passes.ttgpuir.add_to_llvmir(pm, "gfx1250", True, False)
+pm.run(lock_module, "amd-lock-release-check")
+lock_ir = str(lock_module)
+assert lock_ir.count("llvm.atomicrmw xchg") == 1, lock_ir
+assert 'syncscope("agent") release' in lock_ir, lock_ir
+assert "tti.experimental_lock_release" not in lock_ir, lock_ir
+assert "rocdl.wave.id" in lock_ir and "llvm.cond_br" in lock_ir, lock_ir
+print("AMD shared instrumentation lock lowering: passed", flush=True)

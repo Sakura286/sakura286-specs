@@ -100,6 +100,8 @@ Provides:       python3-%{srcname}%{?_isa} = %{version}-%{release}
 2005-buddy-llvm-amd-lowering.patch
 # Keep pass gating and optimization pipelines compatible with Buddy LLVM.
 2006-buddy-llvm-pass-management.patch
+# Retain common AMD instrumentation without NVIDIA-only code generation.
+2007-shared-amd-instrumentation.patch
 
 %description
 Triton is a language and compiler for writing highly efficient custom
