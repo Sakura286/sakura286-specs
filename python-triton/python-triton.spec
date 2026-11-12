@@ -63,6 +63,7 @@ BuildRequires:  clang(major) = %{bootstrap_llvm_maj_ver}
 BuildRequires:  compiler-rt(major) = %{bootstrap_llvm_maj_ver}
 BuildRequires:  cmake
 BuildRequires:  gcc-c++
+BuildRequires:  git
 BuildRequires:  libstdc++-devel
 BuildRequires:  lld(major) = %{bootstrap_llvm_maj_ver}
 BuildRequires:  ninja
