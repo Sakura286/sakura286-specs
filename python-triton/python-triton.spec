@@ -53,6 +53,8 @@ BuildOption(check):  -e 'triton.tools.mxfp'
 # Optional NVIDIA GSan helpers require PyTorch and disabled native bindings.
 BuildOption(check):  -e 'triton.experimental.gsan*'
 BuildOption(check):  -e 'triton.tools.gsan'
+# This ctypes-loaded codegen library has no Python module initialization entry.
+BuildOption(check):  -e 'triton.backends.amd.lib.libtriton_amd_codegen'
 
 BuildRequires:  buddy-mlir = %{buddy_version}
 BuildRequires:  buddy-mlir-llvm = %{buddy_version}
@@ -197,19 +199,22 @@ export TRITON_APPEND_CMAKE_ARGS="-DTRITON_BUILD_TOOLS=OFF -DTRITON_SHARED_BUILD_
 
 %check -a
 # Use lit from the pinned LLVM source; openRuyi has no standalone lit RPM.
+# Collect independent lowering/runtime failures in the same remote build.
+check_failed=0
 triton_cmake_dir=$(%{python3} -c 'from python.build_helpers import get_cmake_dir; print(get_cmake_dir())')
 PATH="$PWD/llvm-install/bin:$PATH" %{python3} \
     llvm-project-%{llvm_commit}/llvm/utils/lit/lit.py -sv \
     --filter='Conversion/TritonToLinalg/' \
-    "$triton_cmake_dir/third_party/triton_shared/test"
+    "$triton_cmake_dir/third_party/triton_shared/test" || check_failed=1
 
 # Use installed files and normal RPM tool lookup; do not mask path problems
 # with the build-time LLVM_SYSPATH or backend/tool environment overrides.
 export TRITON_CACHE_DIR="$PWD/.check-cache"
 export TRITON_DEFAULT_BACKEND=triton_shared
 unset LLVM_SYSPATH LLVM_BINARY_DIR BUDDY_MLIR_BINARY_DIR TRITON_SHARED_OPT_PATH
-PYTHONPATH=%{buildroot}%{python3_sitearch} %{python3} %{SOURCE3}
-PYTHONPATH=%{buildroot}%{python3_sitearch} %{buildroot}%{_bindir}/triton-shared-opt --help > /dev/null
+PYTHONPATH=%{buildroot}%{python3_sitearch} %{python3} %{SOURCE3} || check_failed=1
+PYTHONPATH=%{buildroot}%{python3_sitearch} %{buildroot}%{_bindir}/triton-shared-opt --help > /dev/null || check_failed=1
+[ "$check_failed" -eq 0 ]
 
 %files -f %{pyproject_files}
 %{_bindir}/triton-shared-opt
