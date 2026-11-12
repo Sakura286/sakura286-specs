@@ -144,6 +144,8 @@ link_jobs=$(( 1 + mem_gb / 16 ))
 
 llvm_targets="X86;RISCV;AMDGPU;NVPTX"
 
+# Triton and triton_shared use MLIR dump() in diagnostics, also with Release LLVM.
+
 cmake -S "$llvm_src/llvm" -B "$llvm_src/build" -G Ninja \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX="$llvm_install" \
@@ -153,6 +155,7 @@ cmake -S "$llvm_src/llvm" -B "$llvm_src/build" -G Ninja \
     -DLLVM_ENABLE_PROJECTS="mlir;lld" \
     -DLLVM_TARGETS_TO_BUILD="$llvm_targets" \
     -DLLVM_ENABLE_ASSERTIONS=OFF \
+    -DLLVM_ENABLE_DUMP=ON \
     -DBUILD_SHARED_LIBS=OFF \
     -DLLVM_BUILD_LLVM_DYLIB=OFF \
     -DLLVM_INSTALL_UTILS=ON \
