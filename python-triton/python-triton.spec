@@ -50,6 +50,9 @@ BuildOption(check):  -e 'triton.instrumentation.*'
 BuildOption(check):  -e 'triton.plugins.*'
 BuildOption(check):  -e 'triton.runtime.interpreter'
 BuildOption(check):  -e 'triton.tools.mxfp'
+# Optional NVIDIA GSan helpers require PyTorch and disabled native bindings.
+BuildOption(check):  -e 'triton.experimental.gsan*'
+BuildOption(check):  -e 'triton.tools.gsan'
 
 BuildRequires:  buddy-mlir = %{buddy_version}
 BuildRequires:  buddy-mlir-llvm = %{buddy_version}
@@ -95,6 +98,8 @@ Provides:       python3-%{srcname}%{?_isa} = %{version}-%{release}
 2004-buddy-llvm-loop-annotations.patch
 # Update AMD relaxed loads and ROCDL target selection for the same LLVM.
 2005-buddy-llvm-amd-lowering.patch
+# Keep pass gating and optimization pipelines compatible with Buddy LLVM.
+2006-buddy-llvm-pass-management.patch
 
 %description
 Triton is a language and compiler for writing highly efficient custom

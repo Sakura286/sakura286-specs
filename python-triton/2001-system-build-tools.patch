@@ -34,3 +34,15 @@ Downstream openRuyi packaging adaptation for Triton 3.9.0.
  else()
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4244 /wd4624 /wd4715 /wd4530")
  endif()
+--- a/setup.py
++++ b/setup.py
+@@ -386,7 +386,8 @@
+         cmake_dir = get_cmake_dir()
+         subprocess.check_call(["cmake", self.base_dir] + cmake_args, cwd=cmake_dir, env=env)
+         update_symlink(Path(self.base_dir) / "compile_commands.json", cmake_dir / "compile_commands.json")
+-        subprocess.check_call(["cmake", "--build", "."] + build_args, cwd=cmake_dir)
++        # Collect independent compilation failures in one OBS build.
++        subprocess.check_call(["cmake", "--build", "."] + build_args + ["--", "-k0"], cwd=cmake_dir)
+         subprocess.check_call(["cmake", "--build", ".", "--target", "mlir-doc"], cwd=cmake_dir)
+         if check_env_flag("TRITON_EXT_ENABLED"):
+             # Install Triton headers and TableGen definitions (*.h, *.h.inc, *.td)
