@@ -115,6 +115,9 @@ a separate private LLVM from the same source revision.
 
 %prep -a
 tar -xf %{SOURCE1}
+# triton_shared maps libdevice calls through these pure Python declarations
+# and lowers __nv_* externs to CPU math; no NVIDIA driver or binary is needed.
+cp -a third_party/nvidia/language/cuda python/triton/language/extra/
 cp %{shared_src}/LICENSE LICENSE.triton-shared
 # nanobind-static is compiled into libtriton from the system build dependency.
 cp %{_datadir}/licenses/python-nanobind/LICENSE LICENSE.nanobind

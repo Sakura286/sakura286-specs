@@ -7,6 +7,7 @@ from pathlib import Path
 import numpy as np
 import triton
 import triton.language as tl
+from triton.language.extra import libdevice
 from triton.backends import backends
 from triton.backends.compiler import GPUTarget
 from triton.backends.triton_shared.driver import CPUDriver
@@ -45,6 +46,14 @@ def matmul(A, B, C, BLOCK: tl.constexpr):
     tl.store(C + row[:, None] * BLOCK + col[None, :], c)
 
 
+@triton.jit
+def vector_sin(X, Y, N, BLOCK: tl.constexpr):
+    offsets = tl.program_id(0) * BLOCK + tl.arange(0, BLOCK)
+    mask = offsets < N
+    values = tl.load(X + offsets, mask, other=0)
+    tl.store(Y + offsets, libdevice.sin(values), mask)
+
+
 def test_metadata():
     assert triton.__version__ == "3.9.0", triton.__version__
     assert distribution("triton").version == "3.9.0+git20261112.bbe38e5"
@@ -79,6 +88,15 @@ def test_cpu_matmul():
     matmul[(1,)](a, b, c, BLOCK=16)
     np.testing.assert_allclose(c.array, a.array @ b.array, rtol=1e-4, atol=1e-5)
     print("CPU float32 matrix multiplication: passed", flush=True)
+
+
+def test_cpu_libdevice():
+    triton.runtime.driver.set_active(CPUDriver())
+    x = Tensor(np.linspace(-1, 1, 131, dtype=np.float32))
+    y = Tensor(np.zeros(131))
+    vector_sin[(triton.cdiv(131, 64),)](x, y, 131, BLOCK=64)
+    np.testing.assert_allclose(y.array, np.sin(x.array), rtol=1e-6, atol=1e-6)
+    print("CPU libdevice sine: passed", flush=True)
 
 
 def test_amd_codegen():
@@ -124,7 +142,7 @@ if __name__ == "__main__":
 
     failed = []
     for test in (test_metadata, test_cpu_vector_add, test_cpu_matmul,
-                 test_amd_codegen, test_amd_instrumentation):
+                 test_cpu_libdevice, test_amd_codegen, test_amd_instrumentation):
         try:
             test()
         except Exception:
