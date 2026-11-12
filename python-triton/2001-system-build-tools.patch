@@ -1,0 +1,36 @@
+From: CHEN Xuan <chenxuan@iscas.ac.cn>
+Subject: [PATCH] Use system build tools and nanobind
+
+Downstream openRuyi packaging adaptation for Triton 3.9.0.
+
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -1,5 +1,5 @@
+ [build-system]
+-requires = ["setuptools>=40.8.0", "cmake>=3.20,<4.0", "ninja>=1.11.1", "nanobind==2.10.2"]
++requires = ["setuptools>=40.8.0", "nanobind>=2.10.2"]
+ build-backend = "setuptools.build_meta"
+ 
+ [tool.mypy]
+--- a/setup.py
++++ b/setup.py
+@@ -289,7 +289,7 @@
+             "-DCMAKE_MAKE_PROGRAM=" +
+             ninja_dir,  # Pass explicit path to ninja otherwise cmake may cache a temporary path
+             "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+-            "-DLLVM_ENABLE_WERROR=ON",
++            "-DLLVM_ENABLE_WERROR=OFF",
+             "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=" + extdir,
+             "-DTRITON_BUILD_PYTHON_MODULE=ON",
+             "-DPython3_EXECUTABLE:FILEPATH=" + sys.executable,
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -294,7 +294,7 @@
+     # crash a Triton not compiled with visibility due to missing symbols.
+     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DTRITON_EXT_ENABLED=1")
+   endif()
+-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wno-covered-switch-default ")
++  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-covered-switch-default ")
+ else()
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4244 /wd4624 /wd4715 /wd4530")
+ endif()

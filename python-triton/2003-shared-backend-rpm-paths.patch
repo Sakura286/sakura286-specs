@@ -1,0 +1,32 @@
+From: CHEN Xuan <chenxuan@iscas.ac.cn>
+Subject: [PATCH] Locate the packaged Buddy LLVM and expose triton-shared-opt
+
+Downstream openRuyi packaging adaptation for Triton 3.9.0.
+
+--- a/triton-riscv-9ded1d4c19462dd13a9addef5551a4d09e7e3e97/backend/paths.py
++++ b/triton-riscv-9ded1d4c19462dd13a9addef5551a4d09e7e3e97/backend/paths.py
+@@ -61,6 +61,12 @@
+     if bundled := _bundled_bin_path(bin_name):
+         return bundled
+ 
++    # The RPM dependency supplies the exact LLVM revision used by Buddy.
++    # Prefer it to unrelated versions of LLVM installed on the system PATH.
++    private_tool = Path("@BUDDY_LLVM_BINDIR@") / bin_name
++    if private_tool.is_file():
++        return str(private_tool)
++
+     path_entry = shutil.which(bin_name)
+     if path_entry:
+         return path_entry
+--- /dev/null
++++ b/triton-riscv-9ded1d4c19462dd13a9addef5551a4d09e7e3e97/backend/cli.py
+@@ -0,0 +1,9 @@
++"""Console entry point for the packaged triton-shared optimizer."""
++import os
++import sys
++from .paths import _get_triton_shared_opt_path
++
++
++def main():
++    tool = _get_triton_shared_opt_path()
++    os.execv(tool, [tool, *sys.argv[1:]])
