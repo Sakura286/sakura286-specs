@@ -40,12 +40,6 @@ Source1:        https://codeload.github.com/RuyiAI-Stack/llvm-project/tar.gz/%{l
 #!RemoteAsset:  sha256:b59c65078650e0cac853b5df9a5a8756f701659660ebda215a6bdede79911317
 Source2:        https://codeload.github.com/RuyiAI-Stack/triton-riscv/tar.gz/%{shared_commit}#/%{shared_src}.tar.gz
 Source3:        test-rpm-backends.py
-# Use system build tools and nanobind, without upstream wheel dependency pins.
-Patch0:         2001-system-build-tools.patch
-# Keep AMD and the external CPU backend, plus shared NVIDIA dialect definitions.
-Patch1:         2002-amd-and-shared-backends.patch
-# Resolve CPU pipeline tools from the matching Buddy RPM; add the optimizer CLI.
-Patch2:         2003-shared-backend-rpm-paths.patch
 BuildSystem:    pyproject
 
 # Unpack the external backend before applying patches to both source trees.
@@ -89,6 +83,16 @@ Requires:       pkgconfig(python3)
 Provides:       python3-%{srcname} = %{version}-%{release}
 Provides:       python3-%{srcname}%{?_isa} = %{version}-%{release}
 %python_provide python3-%{srcname}
+
+%patchlist
+# Use system build tools and nanobind, without upstream wheel dependency pins.
+2001-system-build-tools.patch
+# Keep AMD and the external CPU backend, plus shared NVIDIA dialect definitions.
+2002-amd-and-shared-backends.patch
+# Resolve CPU pipeline tools from the matching Buddy RPM; add the optimizer CLI.
+2003-shared-backend-rpm-paths.patch
+# Adapt both loop annotation builders to the fixed Buddy LLVM API.
+2004-buddy-llvm-loop-annotations.patch
 
 %description
 Triton is a language and compiler for writing highly efficient custom

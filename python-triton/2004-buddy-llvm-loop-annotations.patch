@@ -1,0 +1,43 @@
+From: CHEN Xuan <chenxuan@iscas.ac.cn>
+Subject: [PATCH] Adapt loop annotations to the Buddy LLVM revision
+
+The fixed RuyiAI LLVM f346011a7ac59144fe085e0bc029cb24835f7a69
+requires distinct IDs and loop alignment in its annotation builder.
+Spell out the fields so LICM remains in its intended position, preserving
+both disable flags and leaving all unrelated annotations unset.
+
+--- a/lib/Conversion/TritonGPUToLLVM/WarpSpecializeUtility.cpp
++++ b/lib/Conversion/TritonGPUToLLVM/WarpSpecializeUtility.cpp
+@@ -369,8 +369,12 @@
+   MLIRContext *ctx = b.getContext();
+   auto licmMD = LLVM::LoopLICMAttr::get(ctx, b.getBoolAttr(true), {});
+   auto loopMD =
+-      LLVM::LoopAnnotationAttr::get(b.getContext(), {}, {}, {}, {}, {}, licmMD,
+-                                    {}, {}, {}, {}, {}, {}, {}, {}, {});
++      LLVM::LoopAnnotationAttr::get(
++          ctx, /*id=*/{}, /*disableNonforced=*/{}, /*vectorize=*/{},
++          /*interleave=*/{}, /*unroll=*/{}, /*unrollAndJam=*/{}, licmMD,
++          /*distribute=*/{}, /*pipeline=*/{}, /*peeled=*/{}, /*unswitch=*/{},
++          /*mustProgress=*/{}, /*isVectorized=*/{}, /*align=*/0,
++          /*startLoc=*/{}, /*endLoc=*/{}, /*parallelAccesses=*/{});
+   latchBr.setLoopAnnotationAttr(loopMD);
+ }
+
+--- a/python/src/ir.cc
++++ b/python/src/ir.cc
+@@ -968,8 +968,13 @@
+                                          self.getBuilder().getBoolAttr(true));
+              mlir::LLVM::LoopAnnotationAttr la =
+                  mlir::LLVM::LoopAnnotationAttr::get(
+-                     self.getBuilder().getContext(), {}, {}, {}, {}, {},
+-                     licmAttr, {}, {}, {}, {}, {}, {}, {}, {}, {});
++                     self.getBuilder().getContext(), /*id=*/{},
++                     /*disableNonforced=*/{}, /*vectorize=*/{},
++                     /*interleave=*/{}, /*unroll=*/{}, /*unrollAndJam=*/{},
++                     licmAttr, /*distribute=*/{}, /*pipeline=*/{}, /*peeled=*/{},
++                     /*unswitch=*/{}, /*mustProgress=*/{}, /*isVectorized=*/{},
++                     /*align=*/0, /*startLoc=*/{}, /*endLoc=*/{},
++                     /*parallelAccesses=*/{});
+              return la;
+            })
+       // Use arith.ConstantOp to create constants
