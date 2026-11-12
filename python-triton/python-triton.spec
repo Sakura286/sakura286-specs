@@ -100,6 +100,8 @@ a separate private LLVM from the same source revision.
 %prep -a
 tar -xf %{SOURCE1}
 cp %{shared_src}/LICENSE LICENSE.triton-shared
+# nanobind-static is compiled into libtriton from the system build dependency.
+cp %{_datadir}/licenses/python-nanobind/LICENSE LICENSE.nanobind
 sed -i 's|@BUDDY_LLVM_BINDIR@|%{_libdir}/buddy-mlir/llvm/bin|' \
     %{shared_src}/backend/paths.py
 
@@ -198,6 +200,7 @@ PYTHONPATH=%{buildroot}%{python3_sitearch} %{buildroot}%{_bindir}/triton-shared-
 %license LICENSE
 %license llvm-project-%{llvm_commit}/llvm/LICENSE.TXT
 %license LICENSE.triton-shared
+%license LICENSE.nanobind
 
 %changelog
 %autochangelog
