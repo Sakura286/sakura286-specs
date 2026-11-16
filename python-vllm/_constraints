@@ -1,5 +1,12 @@
 <constraints>
-  <hardware>
-    <jobs>32</jobs>
-  </hardware>
+  <overwrite>
+    <conditions><arch>x86_64</arch></conditions>
+    <hardware><jobs>32</jobs></hardware>
+  </overwrite>
+  <overwrite>
+    <conditions><arch>riscv64</arch></conditions>
+    <hardware><jobs>4</jobs></hardware>
+    <hostlabel>RVA23</hostlabel>
+    <hostlabel>NATIVE</hostlabel>
+  </overwrite>
 </constraints>
