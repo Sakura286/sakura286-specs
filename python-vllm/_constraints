@@ -1,0 +1,5 @@
+<constraints>
+  <hardware>
+    <jobs>32</jobs>
+  </hardware>
+</constraints>
