@@ -109,6 +109,8 @@ Requires:       amdsmi
 Requires:       gcc-c++
 Requires:       libomp
 Requires:       python-torch-devel
+# Python 3.14 dataclass decoding is required for the engine handshake.
+Requires:       python3dist(msgspec) >= 0.20.0
 Requires:       python3dist(torch)
 %endif
 
