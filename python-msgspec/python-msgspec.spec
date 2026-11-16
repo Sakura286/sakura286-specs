@@ -12,8 +12,8 @@ Release:        %autorelease
 Summary:        Fast serialization and validation library
 License:        BSD-3-Clause
 URL:            https://jcristharif.com/msgspec/
-#!RemoteAsset:  sha256:fd1f5aa07501516720bfaa3f7cbcb7170a0b944d3f49ee107caf0fa56d056d9c
-Source0:        https://github.com/msgspec/%{pypi_name}/archive/refs/tags/%{version}/%{pypi_name}-%{version}.tar.gz
+#!RemoteAsset:  sha256:692349e588fde322875f8d3025ac01689fead5901e7fb18d6870a44519d62a29
+Source0:        https://files.pythonhosted.org/packages/source/m/%{pypi_name}/%{pypi_name}-%{version}.tar.gz
 # Check typed decoding of nested dataclasses with deferred annotations.
 Source1:        test-dataclass-msgpack.py
 BuildSystem:    pyproject
