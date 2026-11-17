@@ -5,7 +5,7 @@
   </overwrite>
   <overwrite>
     <conditions><arch>riscv64</arch></conditions>
-    <hardware><jobs>4</jobs></hardware>
+    <hardware><jobs>32</jobs></hardware>
     <hostlabel>RVA23</hostlabel>
     <hostlabel>NATIVE</hostlabel>
   </overwrite>
