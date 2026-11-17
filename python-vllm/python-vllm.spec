@@ -22,6 +22,13 @@
 %global toolchain clang
 %endif
 
+# RVV kernels incur excessive LTO compile and link costs.
+%if %{without rocm}
+%ifarch riscv64
+%global _lto_cflags %nil
+%endif
+%endif
+
 %if %{with rocm}
 Name:           python-%{srcname}-rocm
 %else
