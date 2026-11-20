@@ -5,7 +5,8 @@
 #
 # SPDX-License-Identifier: MulanPSL-2.0
 
-%global commit 72dcb5dae02510539e71e2d6941e4a60133bc2dc
+# Upstream tag: release/v0.1.4
+%global commit 3eb2730da284fe38a5c8498a42b69c619c70d0ad
 %global llvm_commit f346011a7ac59144fe085e0bc029cb24835f7a69
 
 %global bootstrap_llvm_maj_ver 22
@@ -21,13 +22,13 @@
 %define _find_debuginfo_dwz_opts %{nil}
 
 Name:           buddy-mlir
-Version:        0.1.4~git20261112.72dcb5d
+Version:        0.1.4
 Release:        %autorelease
 Summary:        MLIR-based compiler framework with RISC-V vector lowering passes
 License:        Apache-2.0 AND (Apache-2.0 WITH LLVM-exception OR NCSA)
 URL:            https://github.com/buddy-compiler/buddy-mlir
 VCS:            git:https://github.com/buddy-compiler/buddy-mlir.git
-#!RemoteAsset:  sha256:626614fd6ad2f2abca81b894226d4ff36bded6645dd7627f461ba17e4ac4caa9
+#!RemoteAsset:  sha256:4221e7a61d3cbee0346752997a355e08f4f5a19bf802e547198f1f23c11cbd45
 Source0:        https://codeload.github.com/buddy-compiler/buddy-mlir/tar.gz/%{commit}#/%{name}-%{commit}.tar.gz
 #!RemoteAsset:  sha256:d5e5a0b206ac7ff12b0deef16b5b3d289d9b6d151a8c4f2f35fc97588d149118
 Source1:        https://codeload.github.com/RuyiAI-Stack/llvm-project/tar.gz/%{llvm_commit}#/llvm-project-%{llvm_commit}.tar.gz
@@ -40,7 +41,7 @@ BuildOption(conf):  -DBUDDY_ENABLE_TESTS=OFF
 BuildOption(conf):  -DBUDDY_MLIR_ENABLE_PYTHON_PACKAGES=OFF
 BuildOption(conf):  -DBUDDY_MLIR_ENABLE_RISCV_GNU_TOOLCHAIN=OFF
 BuildOption(conf):  -DBUDDY_DOWNLOAD_CLI11=OFF
-BuildOption(conf):  -DBUDDY_PACKAGE_VERSION=0.1.4
+BuildOption(conf):  -DBUDDY_PACKAGE_VERSION=%{version}
 BuildOption(conf):  -DBUILD_SHARED_LIBS=OFF
 BuildOption(conf):  -DLLVM_DIR=%{llvm_build}/lib/cmake/llvm
 BuildOption(conf):  -DMLIR_DIR=%{llvm_build}/lib/cmake/mlir
