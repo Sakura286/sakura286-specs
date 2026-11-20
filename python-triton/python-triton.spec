@@ -14,7 +14,7 @@
 %global llvm_commit f346011a7ac59144fe085e0bc029cb24835f7a69
 %global shared_commit 9ded1d4c19462dd13a9addef5551a4d09e7e3e97
 %global shared_src triton-riscv-%{shared_commit}
-%global buddy_version 0.1.4~git20261112.72dcb5d
+%global buddy_version 0.1.4
 
 %global bootstrap_llvm_maj_ver 22
 %global bootstrap_llvm_bindir %{_libdir}/llvm%{bootstrap_llvm_maj_ver}/bin
