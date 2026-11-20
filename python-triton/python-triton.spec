@@ -92,8 +92,8 @@ Provides:       python3-%{srcname}%{?_isa} = %{version}-%{release}
 1002-adapt-newer-llvm-api.patch
 # Use system build tools and nanobind, without upstream wheel dependency pins.
 2001-use-system-build-tools.patch
-# Keep AMD and the external CPU backend, plus shared NVIDIA dialect definitions.
-2002-amd-and-shared-backends.patch
+# Disable the NVIDIA backend while retaining shared dialect definitions.
+2002-disable-nvidia-backend.patch
 # Resolve CPU pipeline tools from the matching Buddy RPM; add the optimizer CLI.
 2003-shared-backend-rpm-paths.patch
 # Adapt both loop annotation builders to the fixed Buddy LLVM API.

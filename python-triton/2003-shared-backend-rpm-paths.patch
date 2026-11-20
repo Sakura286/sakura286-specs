@@ -30,3 +30,14 @@ Downstream openRuyi packaging adaptation for Triton 3.9.0.
 +def main():
 +    tool = _get_triton_shared_opt_path()
 +    os.execv(tool, [tool, *sys.argv[1:]])
+--- a/setup.py
++++ b/setup.py
+@@ -545,6 +547,9 @@
+             "proton-viewer = triton.profiler.viewer:main",
+             "proton = triton.profiler.proton:main",
+         ]
++    if any(b.name == "triton_shared" for b in backends):
++        entry_points.setdefault("console_scripts", []).append(
++            "triton-shared-opt = triton.backends.triton_shared.cli:main")
+     entry_points["triton.backends"] = [f"{b.name} = triton.backends.{b.name}" for b in backends]
+     return entry_points
