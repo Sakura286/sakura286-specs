@@ -39,7 +39,7 @@ Source2:        https://codeload.github.com/RuyiAI-Stack/triton-riscv/tar.gz/%{s
 BuildSystem:    pyproject
 
 # Unpack the external backend before applying patches to both source trees.
-BuildOption(prep):  -n %{srcname}-%{version} -a 2
+BuildOption(prep):  -a 2
 
 BuildOption(install):  -l %{srcname}
 BuildOption(check):  -e 'triton.instrumentation.*'
