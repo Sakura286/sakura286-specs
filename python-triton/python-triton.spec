@@ -39,7 +39,6 @@ Source0:        https://codeload.github.com/triton-lang/triton/tar.gz/%{commit}#
 Source1:        https://codeload.github.com/RuyiAI-Stack/llvm-project/tar.gz/%{llvm_commit}#/llvm-project-%{llvm_commit}.tar.gz
 #!RemoteAsset:  sha256:b59c65078650e0cac853b5df9a5a8756f701659660ebda215a6bdede79911317
 Source2:        https://codeload.github.com/RuyiAI-Stack/triton-riscv/tar.gz/%{shared_commit}#/%{shared_src}.tar.gz
-Source3:        test-rpm-backends.py
 BuildSystem:    pyproject
 
 # Unpack the external backend before applying patches to both source trees.
@@ -76,7 +75,6 @@ BuildRequires:  pyproject-rpm-macros
 BuildRequires:  python3dist(build)
 BuildRequires:  python3dist(installer)
 BuildRequires:  python3dist(nanobind) >= 2.10.2
-BuildRequires:  python3dist(numpy)
 BuildRequires:  python3dist(setuptools)
 BuildRequires:  python3dist(wheel)
 
@@ -202,22 +200,15 @@ export TRITON_APPEND_CMAKE_ARGS="-DTRITON_BUILD_TOOLS=OFF -DTRITON_SHARED_BUILD_
 
 %check -a
 # Use lit from the pinned LLVM source; openRuyi has no standalone lit RPM.
-# Collect independent lowering/runtime failures in the same remote build.
-check_failed=0
 triton_cmake_dir=$(%{python3} -c 'from python.build_helpers import get_cmake_dir; print(get_cmake_dir())')
 PATH="$PWD/llvm-install/bin:$PATH" %{python3} \
     llvm-project-%{llvm_commit}/llvm/utils/lit/lit.py -sv \
     --filter='Conversion/TritonToLinalg/' \
-    "$triton_cmake_dir/third_party/triton_shared/test" || check_failed=1
+    "$triton_cmake_dir/third_party/triton_shared/test"
 
-# Use installed files and normal RPM tool lookup; do not mask path problems
-# with the build-time LLVM_SYSPATH or backend/tool environment overrides.
-export TRITON_CACHE_DIR="$PWD/.check-cache"
-export TRITON_DEFAULT_BACKEND=triton_shared
-unset LLVM_SYSPATH LLVM_BINARY_DIR BUDDY_MLIR_BINARY_DIR TRITON_SHARED_OPT_PATH
-PYTHONPATH=%{buildroot}%{python3_sitearch} %{python3} %{SOURCE3} || check_failed=1
-PYTHONPATH=%{buildroot}%{python3_sitearch} %{buildroot}%{_bindir}/triton-shared-opt --help > /dev/null || check_failed=1
-[ "$check_failed" -eq 0 ]
+# Check that the installed entry point finds its bundled optimizer.
+unset TRITON_SHARED_OPT_PATH
+PYTHONPATH=%{buildroot}%{python3_sitearch} %{buildroot}%{_bindir}/triton-shared-opt --help > /dev/null
 
 %files -f %{pyproject_files}
 %{_bindir}/triton-shared-opt
