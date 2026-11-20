@@ -85,9 +85,10 @@ Provides:       python3-%{srcname}%{?_isa} = %{version}-%{release}
 %python_provide python3-%{srcname}
 
 %patchlist
-# Preserve the dialect assembly syntax with newer MLIR (upstream #12236).
+# https://github.com/triton-lang/triton/pull/12236
+# Preserve the dialect assembly syntax with newer MLIR.
 1001-preserve-legacy-mlir-assembly.patch
-# Backport symbol traits and call-site updates for Buddy LLVM (upstream #12236).
+# Backport symbol traits and call-site updates for Buddy LLVM.
 1002-adapt-newer-llvm-api.patch
 # Use system build tools and nanobind, without upstream wheel dependency pins.
 2001-use-system-build-tools.patch
@@ -124,7 +125,6 @@ sed -i 's|@BUDDY_LLVM_BINDIR@|%{_libdir}/buddy-mlir/llvm/bin|' \
     %{shared_src}/backend/paths.py
 
 %generate_buildrequires
-export TRITON_CODEGEN_BACKENDS=amd
 export TRITON_PLUGIN_DIRS="$PWD/%{shared_src}"
 export TRITON_BUILD_PROTON=OFF
 %pyproject_buildrequires
@@ -145,7 +145,7 @@ mem_jobs=$(( 1 + mem_gb / 2 ))
 link_jobs=$(( 1 + mem_gb / 16 ))
 [ "$link_jobs" -lt 1 ] && link_jobs=1
 
-llvm_targets="X86;RISCV;AMDGPU;NVPTX"
+llvm_targets="X86;RISCV;AMDGPU"
 
 # Triton and triton_shared use MLIR dump() in diagnostics, also with Release LLVM.
 
@@ -190,12 +190,11 @@ export MAX_JOBS=$compile_jobs
 export TRITON_PARALLEL_LINK_JOBS=$link_jobs
 export TRITON_BUILD_WITH_CLANG_LLD=ON
 export TRITON_BUILD_PROTON=OFF
-export TRITON_CODEGEN_BACKENDS=amd
 export TRITON_PLUGIN_DIRS="$PWD/%{shared_src}"
-export TRITON_BUILD_NVIDIA_GSAN_RUNTIME=OFF
 export TRITON_HOME="$PWD/.build-cache"
 export TRITON_OFFLINE_BUILD=1
-export TRITON_APPEND_CMAKE_ARGS="-DTRITON_BUILD_TOOLS=OFF -DTRITON_SHARED_BUILD_TRITON_SAN=OFF -DLLVM_EXTERNAL_LIT=$llvm_src/llvm/utils/lit/lit.py"
+# Buddy MLIR deprecates builder overloads still used by Triton 3.9.0.
+export TRITON_APPEND_CMAKE_ARGS="-DTRITON_BUILD_TOOLS=OFF -DTRITON_SHARED_BUILD_TRITON_SAN=OFF -DLLVM_EXTERNAL_LIT=$llvm_src/llvm/utils/lit/lit.py -DCMAKE_CXX_FLAGS_INIT=-Wno-error=deprecated-declarations"
 
 %check -a
 # Use lit from the pinned LLVM source; openRuyi has no standalone lit RPM.
