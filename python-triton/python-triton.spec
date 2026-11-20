@@ -89,7 +89,7 @@ Provides:       python3-%{srcname}%{?_isa} = %{version}-%{release}
 
 %patchlist
 # Use system build tools and nanobind, without upstream wheel dependency pins.
-2001-system-build-tools.patch
+2001-use-system-build-tools.patch
 # Keep AMD and the external CPU backend, plus shared NVIDIA dialect definitions.
 2002-amd-and-shared-backends.patch
 # Resolve CPU pipeline tools from the matching Buddy RPM; add the optimizer CLI.

@@ -1,7 +1,6 @@
 From: CHEN Xuan <chenxuan@iscas.ac.cn>
 Subject: [PATCH] Use system build tools and nanobind
 
-Rebase openRuyi 2002-use-system-build-tools.patch onto Triton 3.9.0.
 Use the system nanobind required by the newer release.
 
 --- a/pyproject.toml
