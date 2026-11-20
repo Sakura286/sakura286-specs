@@ -86,7 +86,7 @@ License:        Apache-2.0 WITH LLVM-exception
 
 %description    llvm
 The pinned LLVM/MLIR build (RuyiAI's llvm-project fork, branch riscv) that
-buddy-mlir compiles and links against. It isinstalled under %{llvm_prefix}
+buddy-mlir compiles and links against. It is installed under %{llvm_prefix}
 and is deliberately not the distribution LLVM: the MLIR version has to match
 buddy-mlir exactly, and the fork carries the RISC-V backend work the lowering
 emits code for. It is built statically, so the tools in this package are
