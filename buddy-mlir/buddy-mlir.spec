@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: (C) 2026 Institute of Software, Chinese Academy of Sciences (ISCAS)
 # SPDX-FileCopyrightText: (C) 2026 openRuyi Project Contributors
 # SPDX-FileContributor: Yifan Xu <xuyifan@iscas.ac.cn>
-# SPDX-FileContributor: CHEN Xuan <chenxuan@iscas.ac.cn>
 #
 # SPDX-License-Identifier: MulanPSL-2.0
 
@@ -31,8 +30,6 @@ Source0:        %{url}/archive/refs/tags/release/v%{version}.tar.gz#/%{name}-%{v
 #!RemoteAsset:  sha256:d5e5a0b206ac7ff12b0deef16b5b3d289d9b6d151a8c4f2f35fc97588d149118
 Source1:        https://github.com/RuyiAI-Stack/llvm-project/archive/%{llvm_commit}/llvm-project-%{llvm_commit}.tar.gz
 BuildSystem:    cmake
-
-BuildOption(prep):  -n %{name}-release-v%{version}
 
 BuildOption(conf):  -G Ninja
 BuildOption(conf):  -DBUDDY_ENABLE_TESTS=OFF
@@ -89,12 +86,11 @@ License:        Apache-2.0 WITH LLVM-exception
 
 %description    llvm
 The pinned LLVM/MLIR build (RuyiAI's llvm-project fork, branch riscv) that
-buddy-mlir compiles and links against. Triton builds its own toolchain from
-the same source revision with additional GPU targets. This instance is
-installed under %{llvm_prefix} and is deliberately not the distribution LLVM:
-the MLIR version has to match buddy-mlir exactly, and the fork carries the
-RISC-V backend work the lowering emits code for. It is built statically, so the
-tools in this package are self-contained.
+buddy-mlir compiles and links against. It isinstalled under %{llvm_prefix}
+and is deliberately not the distribution LLVM: the MLIR version has to match
+buddy-mlir exactly, and the fork carries the RISC-V backend work the lowering
+emits code for. It is built statically, so the tools in this package are
+self-contained.
 
 %package        llvm-devel
 Summary:        Development files of the pinned LLVM/MLIR toolchain
@@ -114,7 +110,7 @@ Requires:       %{name}-llvm%{?_isa} = %{version}-%{release}
 
 %description    llvm-static
 The static LLVM/MLIR libraries for consumers of the
-%{name}-llvm-devel configuration. Triton builds its own LLVM instance.
+%{name}-llvm-devel configuration.
 
 %prep -a
 tar -xf %{SOURCE1}
@@ -203,7 +199,7 @@ printf 'module {}\n' | %{buildroot}%{_bindir}/buddy-opt > /dev/null
 %{buildroot}%{_bindir}/buddy-translate --help > /dev/null
 %{buildroot}%{_bindir}/buddy-llc --version > /dev/null
 
-# Check basic RISC-V target availability; this is not an RVV execution test.
+# The pinned LLVM must be able to emit RVV code for both the JIT and the AOT paths.
 %{buildroot}%{llvm_prefix}/bin/llc --version | grep -q riscv64
 cat > rvv-smoke.ll <<'EOF'
 define void @smoke() {
