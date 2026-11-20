@@ -85,6 +85,8 @@ Provides:       python3-%{srcname}%{?_isa} = %{version}-%{release}
 %python_provide python3-%{srcname}
 
 %patchlist
+# Preserve the dialect assembly syntax with newer MLIR (upstream #12236).
+1001-preserve-legacy-mlir-assembly.patch
 # Use system build tools and nanobind, without upstream wheel dependency pins.
 2001-use-system-build-tools.patch
 # Keep AMD and the external CPU backend, plus shared NVIDIA dialect definitions.
