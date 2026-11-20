@@ -7,7 +7,7 @@ carrying over Triton's architecture and wavefront size.
 
 --- a/third_party/amd/lib/TritonAMDGPUToLLVM/TargetInfo.cpp
 +++ b/third_party/amd/lib/TritonAMDGPUToLLVM/TargetInfo.cpp
-@@ -199,7 +199,8 @@
+@@ -217,7 +217,8 @@
          Value loaded = LLVM::LoadOp::create(
              rewriter, loc, valueTy, ptr, alignment, /*isVolatile=*/false,
              /*isNonTemporal=*/false, /*isInvariant=*/false,
@@ -29,9 +29,9 @@ carrying over Triton's architecture and wavefront size.
  #include "mlir/Dialect/LLVMIR/ROCDLDialect.h"
 +#include "mlir/Dialect/LLVMIR/ROCDLTargetInfo.h"
  #include "mlir/Pass/Pass.h"
+ #include "third_party/amd/include/Analysis/AMDGPUAllocation.h"
  #include "third_party/amd/include/Analysis/AxisInfoExt.h"
- #include "third_party/amd/include/Dialect/TritonAMDGPU/IR/Dialect.h"
-@@ -205,16 +205,17 @@
+@@ -213,16 +213,17 @@
      mlir::triton::AMD::populateWarpIdOpToLLVMPattern(typeConverter, targetInfo,
                                                       patterns, commonBenefit);
 

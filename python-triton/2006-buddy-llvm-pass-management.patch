@@ -1,27 +1,12 @@
 From: CHEN Xuan <chenxuan@iscas.ac.cn>
-Subject: [PATCH] Adapt LLVM pass management to the Buddy revision
+Subject: [PATCH] Pass the module context to LLVM PassBuilder
 
-Forward function names through the per-context LSR pass gate and give
-PassBuilder the module's context, as required by fixed LLVM
-f346011a7ac59144fe085e0bc029cb24835f7a69.
+The pinned Buddy LLVM revision requires the module's LLVMContext as the
+first argument to PassBuilder.
 
 --- a/python/src/llvm.cc
 +++ b/python/src/llvm.cc
-@@ -257,10 +257,11 @@
-   bool isEnabled() const override { return true; }
-
-   bool shouldRunPass(llvm::StringRef passName,
--                     llvm::StringRef irDescription) const override {
-+                     llvm::StringRef irDescription,
-+                     llvm::StringRef funcName) const override {
-     return passName != "Loop Strength Reduction" &&
-            (!previousGate.isEnabled() ||
--            previousGate.shouldRunPass(passName, irDescription));
-+            previousGate.shouldRunPass(passName, irDescription, funcName));
-   }
- };
-
-@@ -730,7 +731,7 @@
+@@ -734,7 +734,7 @@
          if (!arch.empty())
            targetMachine =
                createTargetMachine(mod, arch, enable_fp_fusion, features);
