@@ -96,12 +96,10 @@ Provides:       python3-%{srcname}%{?_isa} = %{version}-%{release}
 2002-disable-nvidia-backend.patch
 # Resolve CPU pipeline tools from the matching Buddy RPM; add the optimizer CLI.
 2003-shared-backend-rpm-paths.patch
-# Adapt both loop annotation builders to the fixed Buddy LLVM API.
-2004-buddy-llvm-loop-annotations.patch
+# Adapt loop annotations and PassBuilder to the fixed Buddy LLVM API.
+2004-buddy-llvm-common-api.patch
 # Update AMD relaxed loads and ROCDL target selection for the same LLVM.
 2005-buddy-llvm-amd-lowering.patch
-# Use the PassBuilder constructor provided by Buddy LLVM.
-2006-buddy-llvm-pass-management.patch
 # Retain common AMD instrumentation without NVIDIA-only code generation.
 2007-shared-amd-instrumentation.patch
 

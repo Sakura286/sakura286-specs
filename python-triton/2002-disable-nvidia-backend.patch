@@ -98,20 +98,26 @@ and Python layout definitions used by common Gluon code.
  endif()
 --- a/third_party/proton/Dialect/include/Conversion/ProtonGPUToLLVM/CMakeLists.txt
 +++ b/third_party/proton/Dialect/include/Conversion/ProtonGPUToLLVM/CMakeLists.txt
-@@ -2,5 +2,4 @@
+@@ -2,5 +2,6 @@
  mlir_tablegen(Passes.h.inc -gen-pass-decls --name ProtonGPUToLLVM)
  add_public_tablegen_target(ProtonGPUConversionPassIncGen)
 
 -add_subdirectory(ProtonNvidiaGPUToLLVM)
- add_subdirectory(ProtonAMDGPUToLLVM)
+-add_subdirectory(ProtonAMDGPUToLLVM)
++if(TRITON_BUILD_PROTON)
++  add_subdirectory(ProtonAMDGPUToLLVM)
++endif()
 --- a/third_party/proton/Dialect/lib/ProtonGPUToLLVM/CMakeLists.txt
 +++ b/third_party/proton/Dialect/lib/ProtonGPUToLLVM/CMakeLists.txt
-@@ -12,5 +12,4 @@
+@@ -12,5 +12,6 @@
      ProtonAnalysis
  )
 
 -add_subdirectory(ProtonNvidiaGPUToLLVM)
- add_subdirectory(ProtonAMDGPUToLLVM)
+-add_subdirectory(ProtonAMDGPUToLLVM)
++if(TRITON_BUILD_PROTON)
++  add_subdirectory(ProtonAMDGPUToLLVM)
++endif()
 --- a/python/src/llvm.cc
 +++ b/python/src/llvm.cc
 @@ -876,12 +876,7 @@

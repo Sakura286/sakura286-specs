@@ -1,0 +1,45 @@
+From: CHEN Xuan <chenxuan@iscas.ac.cn>
+Subject: [PATCH] Adapt common LLVM call sites to Buddy LLVM
+
+Pass the new ID and alignment arguments without adding loop metadata.
+Pass the module context to the updated PassBuilder constructor.
+
+--- a/lib/Conversion/TritonGPUToLLVM/WarpSpecializeUtility.cpp
++++ b/lib/Conversion/TritonGPUToLLVM/WarpSpecializeUtility.cpp
+@@ -369,8 +369,9 @@
+   MLIRContext *ctx = b.getContext();
+   auto licmMD = LLVM::LoopLICMAttr::get(ctx, b.getBoolAttr(true), {});
+   auto loopMD =
+-      LLVM::LoopAnnotationAttr::get(b.getContext(), {}, {}, {}, {}, {}, licmMD,
+-                                    {}, {}, {}, {}, {}, {}, {}, {}, {});
++      LLVM::LoopAnnotationAttr::get(ctx, /*id=*/{}, {}, {}, {}, {}, {}, licmMD,
++                                    {}, {}, {}, {}, {}, {}, /*align=*/0,
++                                    {}, {}, {});
+   latchBr.setLoopAnnotationAttr(loopMD);
+ }
+
+--- a/python/src/ir.cc
++++ b/python/src/ir.cc
+@@ -935,8 +935,9 @@
+                                          self.getBuilder().getBoolAttr(true));
+              mlir::LLVM::LoopAnnotationAttr la =
+                  mlir::LLVM::LoopAnnotationAttr::get(
+-                     self.getBuilder().getContext(), {}, {}, {}, {}, {},
+-                     licmAttr, {}, {}, {}, {}, {}, {}, {}, {}, {});
++                     self.getBuilder().getContext(), /*id=*/{}, {}, {}, {},
++                     {}, {}, licmAttr, {}, {}, {}, {}, {}, {}, /*align=*/0,
++                     {}, {}, {});
+              return la;
+            })
+       // Use arith.ConstantOp to create constants
+--- a/python/src/llvm.cc
++++ b/python/src/llvm.cc
+@@ -734,7 +734,7 @@
+         if (!arch.empty())
+           targetMachine =
+               createTargetMachine(mod, arch, enable_fp_fusion, features);
+-        PassBuilder pb(/*targetMachine=*/targetMachine.get(), tuningOptions,
++        PassBuilder pb(mod->getContext(), targetMachine.get(), tuningOptions,
+                        std::nullopt, instrCbPtr);
+
+         if (!pluginFile.empty()) {
