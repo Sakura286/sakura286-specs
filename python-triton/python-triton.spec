@@ -90,17 +90,17 @@ Provides:       python3-%{srcname}%{?_isa} = %{version}-%{release}
 1001-preserve-legacy-mlir-assembly.patch
 # Backport symbol traits and call-site updates for Buddy LLVM.
 1002-adapt-newer-llvm-api.patch
-# Use system build tools and nanobind, without upstream wheel dependency pins.
+# Use packaged CMake, Ninja and nanobind.
 2001-use-system-build-tools.patch
-# Disable the NVIDIA backend while retaining shared dialect definitions.
+# Build AMD and triton_shared with the NVIDIA dialects they still use.
 2002-disable-nvidia-backend.patch
-# Resolve CPU pipeline tools from the matching Buddy RPM; add the optimizer CLI.
+# Find Buddy's opt and llc in its private bin directory.
 2003-shared-backend-rpm-paths.patch
-# Adapt loop annotations and PassBuilder to the fixed Buddy LLVM API.
+# Supply the new arguments for LoopAnnotationAttr and PassBuilder.
 2004-buddy-llvm-common-api.patch
-# Update AMD relaxed loads and ROCDL target selection for the same LLVM.
+# Pass isNoundef and ROCDL TargetInfo when lowering AMD code.
 2005-buddy-llvm-amd-lowering.patch
-# Retain common AMD instrumentation without NVIDIA-only code generation.
+# Remove CUDA code from the shared instrumentation.
 2007-shared-amd-instrumentation.patch
 
 %description
@@ -202,12 +202,7 @@ PATH="$PWD/llvm-install/bin:$PATH" %{python3} \
     --filter='Conversion/TritonToLinalg/' \
     "$triton_cmake_dir/third_party/triton_shared/test"
 
-# Check that the installed entry point finds its bundled optimizer.
-unset TRITON_SHARED_OPT_PATH
-PYTHONPATH=%{buildroot}%{python3_sitearch} %{buildroot}%{_bindir}/triton-shared-opt --help > /dev/null
-
 %files -f %{pyproject_files}
-%{_bindir}/triton-shared-opt
 %doc README.md
 %license LICENSE
 %license llvm-project-%{llvm_commit}/llvm/LICENSE.TXT

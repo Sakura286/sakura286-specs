@@ -1,9 +1,9 @@
 From: CHEN Xuan <chenxuan@iscas.ac.cn>
-Subject: [PATCH] Adapt AMD lowering to the Buddy LLVM revision
+Subject: [PATCH] Update AMD loads and ROCDL target selection
 
-Keep relaxed loads free of the new noundef assumption. Use the ROCDL
-TargetInfo API required by fixed LLVM f346011a7ac59144fe085e0bc029cb24835f7a69,
-carrying over Triton's architecture and wavefront size.
+Buddy LLVM requires isNoundef for loads and ROCDL TargetInfo for GPU lowering.
+Use false for relaxed atomic loads. Build the target info from Triton's GPU
+architecture and wavefront size.
 
 --- a/third_party/amd/lib/TritonAMDGPUToLLVM/TargetInfo.cpp
 +++ b/third_party/amd/lib/TritonAMDGPUToLLVM/TargetInfo.cpp

@@ -1,8 +1,8 @@
 From: CHEN Xuan <chenxuan@iscas.ac.cn>
-Subject: [PATCH] Retain shared instrumentation for AMD
+Subject: [PATCH] Remove CUDA code from shared instrumentation
 
-Keep the common instrumentation and floating-point sanitizer patterns.
-Use the existing AMD lock lowering and omit NVIDIA GSan and PTX code.
+Drop NVIDIA GSan and PTX lock lowering so shared instrumentation builds with
+the AMD backend. Keep AMD lock lowering and FpSan.
 
 --- a/lib/Conversion/TritonInstrumentToLLVM/CMakeLists.txt
 +++ b/lib/Conversion/TritonInstrumentToLLVM/CMakeLists.txt

@@ -1,7 +1,8 @@
 From: CHEN Xuan <chenxuan@iscas.ac.cn>
-Subject: [PATCH] Use system build tools and nanobind
+Subject: [PATCH] Use RPM build dependencies
 
-Use the system nanobind required by the newer release.
+Use the packaged CMake and Ninja. Accept packaged nanobind versions from
+2.10.2 onward.
 
 --- a/pyproject.toml
 +++ b/pyproject.toml

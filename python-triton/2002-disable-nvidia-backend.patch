@@ -1,8 +1,9 @@
 From: CHEN Xuan <chenxuan@iscas.ac.cn>
 Subject: [PATCH] Disable the NVIDIA backend
 
-Build the AMD and external CPU backends. Keep the shared NVIDIA dialect
-and Python layout definitions used by common Gluon code.
+Build AMD and triton_shared. Keep the NVIDIA dialects used by AMD lowering
+and the layout definitions used by Gluon. Let RPM builds skip native tools
+that link the NVIDIA backend.
 
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt

@@ -1,16 +1,16 @@
 From: CHEN Xuan <chenxuan@iscas.ac.cn>
-Subject: [PATCH] Locate the packaged Buddy LLVM and expose triton-shared-opt
+Subject: [PATCH] Find Buddy's opt and llc for CPU JIT
 
-Downstream openRuyi packaging adaptation for Triton 3.9.0.
+The buddy-mlir-llvm RPM installs opt and llc in its private bin directory.
+Search it before PATH so CPU JIT uses the LLVM tools that match Buddy.
 
 --- a/triton-riscv-9ded1d4c19462dd13a9addef5551a4d09e7e3e97/backend/paths.py
 +++ b/triton-riscv-9ded1d4c19462dd13a9addef5551a4d09e7e3e97/backend/paths.py
-@@ -61,6 +61,12 @@
+@@ -61,6 +61,11 @@
      if bundled := _bundled_bin_path(bin_name):
          return bundled
 
-+    # The RPM dependency supplies the exact LLVM revision used by Buddy.
-+    # Prefer it to unrelated versions of LLVM installed on the system PATH.
++    # Check the private bin directory supplied by the buddy-mlir-llvm RPM.
 +    private_tool = Path("@BUDDY_LLVM_BINDIR@") / bin_name
 +    if private_tool.is_file():
 +        return str(private_tool)
@@ -18,26 +18,3 @@ Downstream openRuyi packaging adaptation for Triton 3.9.0.
      path_entry = shutil.which(bin_name)
      if path_entry:
          return path_entry
---- /dev/null
-+++ b/triton-riscv-9ded1d4c19462dd13a9addef5551a4d09e7e3e97/backend/cli.py
-@@ -0,0 +1,9 @@
-+"""Console entry point for the packaged triton-shared optimizer."""
-+import os
-+import sys
-+from .paths import _get_triton_shared_opt_path
-+
-+
-+def main():
-+    tool = _get_triton_shared_opt_path()
-+    os.execv(tool, [tool, *sys.argv[1:]])
---- a/setup.py
-+++ b/setup.py
-@@ -545,6 +547,9 @@
-             "proton-viewer = triton.profiler.viewer:main",
-             "proton = triton.profiler.proton:main",
-         ]
-+    if any(b.name == "triton_shared" for b in backends):
-+        entry_points.setdefault("console_scripts", []).append(
-+            "triton-shared-opt = triton.backends.triton_shared.cli:main")
-     entry_points["triton.backends"] = [f"{b.name} = triton.backends.{b.name}" for b in backends]
-     return entry_points

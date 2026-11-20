@@ -1,8 +1,9 @@
 From: CHEN Xuan <chenxuan@iscas.ac.cn>
-Subject: [PATCH] Adapt common LLVM call sites to Buddy LLVM
+Subject: [PATCH] Update LoopAnnotationAttr and PassBuilder calls
 
-Pass the new ID and alignment arguments without adding loop metadata.
-Pass the module context to the updated PassBuilder constructor.
+Buddy LLVM's loop annotation builder takes an ID and alignment. Use an empty
+ID and zero alignment to retain the existing metadata. Pass the module's
+LLVM context to PassBuilder.
 
 --- a/lib/Conversion/TritonGPUToLLVM/WarpSpecializeUtility.cpp
 +++ b/lib/Conversion/TritonGPUToLLVM/WarpSpecializeUtility.cpp
