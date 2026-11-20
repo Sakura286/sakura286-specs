@@ -87,6 +87,8 @@ Provides:       python3-%{srcname}%{?_isa} = %{version}-%{release}
 %patchlist
 # Preserve the dialect assembly syntax with newer MLIR (upstream #12236).
 1001-preserve-legacy-mlir-assembly.patch
+# Backport symbol traits and call-site updates for Buddy LLVM (upstream #12236).
+1002-adapt-newer-llvm-api.patch
 # Use system build tools and nanobind, without upstream wheel dependency pins.
 2001-use-system-build-tools.patch
 # Keep AMD and the external CPU backend, plus shared NVIDIA dialect definitions.
