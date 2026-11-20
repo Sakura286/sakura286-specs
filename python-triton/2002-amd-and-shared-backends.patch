@@ -1,7 +1,9 @@
 From: CHEN Xuan <chenxuan@iscas.ac.cn>
 Subject: [PATCH] Build AMD and external backends without the NVIDIA plugin
 
-Downstream openRuyi adaptation for the triton-riscv 3.9.0 snapshot baseline.
+Rebase openRuyi 2003-disable-nvidia-backend.patch and retain the shared
+Gluon descriptor types covered by its 2004 patch. Register the external CPU
+backend alongside AMD on the Triton 3.9.0 snapshot.
 Keep NVIDIA Python layout/descriptor modules: common native Gluon code
 imports them even when the NVIDIA runtime backend is disabled.
 

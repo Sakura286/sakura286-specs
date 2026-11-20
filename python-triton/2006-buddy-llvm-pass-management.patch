@@ -30,14 +30,3 @@ f346011a7ac59144fe085e0bc029cb24835f7a69.
                         std::nullopt, instrCbPtr);
 
          if (!pluginFile.empty()) {
---- a/bin/triton-llvm-opt.cpp
-+++ b/bin/triton-llvm-opt.cpp
-@@ -56,7 +56,7 @@
- static std::function<Error(Module *)> makeOptimizingPipeline() {
-   return [](Module *m) -> Error {
-     PipelineTuningOptions tuningOptions;
--    PassBuilder pb(nullptr, tuningOptions);
-+    PassBuilder pb(m->getContext(), nullptr, tuningOptions);
-
-     LoopAnalysisManager lam;
-     FunctionAnalysisManager fam;
