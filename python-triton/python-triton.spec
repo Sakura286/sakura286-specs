@@ -143,7 +143,7 @@ mem_jobs=$(( 1 + mem_gb / 2 ))
 link_jobs=$(( 1 + mem_gb / 16 ))
 [ "$link_jobs" -lt 1 ] && link_jobs=1
 
-llvm_targets="X86;RISCV;AMDGPU"
+llvm_targets="X86;RISCV;AMDGPU;NVPTX"
 
 # Triton and triton_shared use MLIR dump() in diagnostics, also with Release LLVM.
 
